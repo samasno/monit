@@ -1,22 +1,30 @@
 package i
 
+import (
+	t "github.com/samasno/monit/pkg/agent/types"
+)
+
 type Controller interface { // manages the forwarder to upstream and log runners
-	Init()
+	Init(input t.ControllerInitInput) error
 	Run()
 	Shutdown()
-	Status()
+	Status() t.ControllerStatus
 }
 
 type Forwarder interface {
 	Connect()
-	Push()
 	Close()
+	Push()
 	Status()
 }
 
 type LogTail interface {
-	Update()
 	Open()
 	Close()
+	Update()
 	Status()
+}
+
+type Logger interface {
+	Log([]byte)
 }
