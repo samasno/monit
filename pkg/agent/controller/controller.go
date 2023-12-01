@@ -19,9 +19,13 @@ func NewController() i.Controller {
 func (c *Controller) Init(t.ControllerInitInput) error {
 	return nil
 }
-func (c *Controller) Run() {}
+func (c *Controller) Run() error {
+	return nil
+}
 
-func (c *Controller) Shutdown() {}
+func (c *Controller) Shutdown() error {
+	return nil
+}
 
 func (c Controller) Status() t.ControllerStatus {
 	s := t.ControllerStatus{}
