@@ -6,8 +6,8 @@ import (
 
 type Controller interface { // manages the forwarder to upstream and log runners
 	Init(input t.ControllerInitInput) error
-	Run()
-	Shutdown()
+	Run() error
+	Shutdown() error
 	Status() t.ControllerStatus
 }
 
@@ -26,5 +26,6 @@ type LogTail interface {
 }
 
 type Logger interface {
-	Log([]byte)
+	StdOut()
+	StdErr()
 }
