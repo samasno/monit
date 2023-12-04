@@ -5,13 +5,6 @@ import (
 	"net"
 )
 
-type Controller interface { // manages the forwarder to upstream and log runners
-	Init() error
-	Run() error
-	Shutdown() error
-	Status() (Status, error)
-}
-
 type Forwarder interface {
 	Connect() error
 	Close() error
@@ -27,8 +20,8 @@ type LogTail interface {
 }
 
 type Logger interface {
-	StdOut() error
-	StdErr() error
+	StdOut(msg string) error
+	StdErr(msg string) error
 	Close() error
 	Status() (Status, error)
 }
