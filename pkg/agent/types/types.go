@@ -12,6 +12,22 @@ type Forwarder interface {
 	Status() (Status, error)
 }
 
+type ForwarderClient interface {
+	Connect() error
+	Disconnect() error
+	Push([]byte) error
+}
+
+type ForwarderListener interface {
+	Open() error
+	Close() error
+	Listen() ([]byte, error)
+}
+
+type Pipe interface {
+	Pipe([]byte) error
+}
+
 type LogTail interface {
 	Open() error
 	Close() error
