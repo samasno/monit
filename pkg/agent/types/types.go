@@ -24,8 +24,8 @@ type ForwarderListener interface {
 	Listen() ([]byte, error)
 }
 
-type Pipe interface {
-	Pipe([]byte) error
+type Emitter interface {
+	Emit(Event) error
 }
 
 type LogTail interface {
@@ -49,6 +49,18 @@ type Status interface {
 
 type Upstream struct {
 	Connection net.Conn
-	URL        string
+	Url        string
+	Port       int
 	TlsConfig  *tls.Config
+}
+
+type Event struct {
+	Type    string  `json:"type"`
+	Payload Payload `json:"payload,omitempty"`
+}
+
+type Payload struct {
+	Source  string `json:"source,omitempty"`
+	Message string `json:"message,omitempty"`
+	Level   int    `json:"level,omitempty"`
 }
