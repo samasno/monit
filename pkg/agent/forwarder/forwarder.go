@@ -8,17 +8,17 @@ import (
 
 type Forwarder struct {
 	Name           string
-	upstreamClient types.ForwarderClient
-	eventListener  types.ForwarderListener
+	UpstreamClient types.ForwarderClient
+	EventListener  types.ForwarderListener
 	Ok             bool
 }
 
 func (f *Forwarder) Connect() error {
-	err := f.upstreamClient.Connect()
+	err := f.UpstreamClient.Connect()
 	if err != nil {
 		return fmt.Errorf("Forwarder %s: Failed to connect to upstream %s\n", f.Name, err.Error())
 	}
-	err = f.eventListener.Open()
+	err = f.EventListener.Open()
 	if err != nil {
 		return fmt.Errorf("Forwarder %s: Failed to connect %s\n", f.Name, err.Error())
 	}
@@ -26,11 +26,11 @@ func (f *Forwarder) Connect() error {
 }
 
 func (f *Forwarder) Close() error {
-	err := f.upstreamClient.Disconnect()
+	err := f.UpstreamClient.Disconnect()
 	if err != nil {
 		return fmt.Errorf("Forwarder %s: Failed to close connection to upstream %s\n", f.Name, err.Error())
 	}
-	err = f.eventListener.Close()
+	err = f.EventListener.Close()
 	if err != nil {
 		return fmt.Errorf("Forwarder %s: Failed to close listener", f.Name)
 	}
@@ -38,7 +38,7 @@ func (f *Forwarder) Close() error {
 }
 
 func (f *Forwarder) Push(msg []byte) error {
-	err := f.upstreamClient.Push(msg)
+	err := f.UpstreamClient.Push(msg)
 	if err != nil {
 		return fmt.Errorf("Forwarder %s: Failed to push to upstream %s\n", f.Name, err.Error())
 	}
@@ -47,12 +47,12 @@ func (f *Forwarder) Push(msg []byte) error {
 
 func (f *Forwarder) Status() (types.Status, error) {
 	fs := ForwarderStatus{}
-	if f.upstreamClient == nil {
+	if f.UpstreamClient == nil {
 		fs.IsOk = false
 		fs.MessageText = "Missing upstream client. "
 	}
 
-	if f.eventListener == nil {
+	if f.EventListener == nil {
 		fs.IsOk = false
 		fs.MessageText += "No listening client"
 	}
