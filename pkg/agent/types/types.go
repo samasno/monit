@@ -22,6 +22,7 @@ type ForwarderListener interface {
 	Open() error
 	Close() error
 	Listen() ([]byte, error)
+	Ok() (bool, string)
 }
 
 type Emitter interface {
