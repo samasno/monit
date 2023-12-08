@@ -9,7 +9,6 @@ type Forwarder interface {
 	Connect() error
 	Close() error
 	Push([]byte) error
-	Status() (Status, error)
 }
 
 type ForwarderClient interface {
@@ -22,7 +21,6 @@ type ForwarderListener interface {
 	Open() error
 	Close() error
 	Listen() ([]byte, error)
-	Ok() (bool, string)
 }
 
 type Emitter interface {
@@ -33,19 +31,16 @@ type LogTail interface {
 	Open() error
 	Close() error
 	Update() error
-	Status() (Status, error)
 }
 
 type Logger interface {
 	StdOut(msg string) error
 	StdErr(msg string) error
 	Close() error
-	Status() (Status, error)
 }
 
 type Status interface {
 	Message() string
-	Ok() bool
 }
 
 type Upstream struct {
