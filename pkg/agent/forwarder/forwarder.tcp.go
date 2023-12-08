@@ -10,12 +10,12 @@ import (
 )
 
 type ForwarderTcpClient struct {
-	Upstream types.Upstream
+	Upstream *types.Upstream
 	Emitter  types.Emitter
 }
 
 func (t *ForwarderTcpClient) Connect() error {
-	if t.Upstream.Connection == nil {
+	if t.Upstream.Connection != nil {
 		t.log(vars.NOTICE, "Connection already exists")
 		return nil
 	}
@@ -38,7 +38,7 @@ func (t *ForwarderTcpClient) Connect() error {
 		}
 	}
 	t.Upstream.Connection = conn
-	t.log(vars.INFO, "Opened connection to upstream tcp server")
+	t.log(vars.INFO, "Opened connection to upstream tcp server at "+dest)
 	return nil
 }
 
@@ -50,6 +50,7 @@ func (t *ForwarderTcpClient) Disconnect() error {
 			t.log(vars.ERROR, msg)
 			return fmt.Errorf(msg)
 		}
+		t.Upstream.Connection = nil
 	}
 	t.log(vars.INFO, fmt.Sprintf("Disconnected from %s", t.Upstream.Url))
 	return nil
