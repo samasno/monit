@@ -58,9 +58,17 @@ func VanillaTcpServer(addr string, wg *sync.WaitGroup) func() error {
 }
 
 func TlsTcpServer(addr string, wg *sync.WaitGroup) func() error {
-	config := &tls.Config{}
+	cert, err := tls.LoadX509KeyPair("../../../certs/testing.crt", "../../../certs/testing.pem")
+	if err != nil {
+		println("failed to load key pair")
+		println(err.Error())
+		return nil
+	}
+	config := &tls.Config{Certificates: []tls.Certificate{cert}}
 	ln, err := tls.Listen("tcp", addr, config)
 	if err != nil {
+		println("Failed to start tls server")
+		println(err.Error())
 		return nil
 	}
 	go func(ln net.Listener, wg *sync.WaitGroup) {
@@ -74,6 +82,7 @@ func TlsTcpServer(addr string, wg *sync.WaitGroup) func() error {
 			tlsConnId++
 			go func(conn net.Conn, id int) {
 				defer conn.Close()
+				defer wg.Done()
 				b := make([]byte, 1024)
 				for {
 					n, err := conn.Read(b)
