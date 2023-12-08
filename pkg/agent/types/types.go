@@ -55,6 +55,13 @@ type Upstream struct {
 	TlsConfig  *tls.Config
 }
 
+type Downstream struct {
+	Connection net.Conn
+	Url        string
+	Port       int
+	TlsConfig  *tls.Config
+}
+
 type Event struct {
 	Type    string  `json:"type"`
 	Payload Payload `json:"payload,omitempty"`
