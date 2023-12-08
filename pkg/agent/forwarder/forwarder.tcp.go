@@ -95,11 +95,16 @@ func (t *ForwarderTcpClient) log(level int, message string) error {
 }
 
 func (t *ForwarderTcpClient) Ok() (bool, string) {
+	ok := true
+	msg := ""
 	if t.Upstream.Connection == nil {
-		return false, "No connection to upstream server"
-	} else {
-		return true, "All good"
+		ok = false
+		msg += "No connection to upstream server. "
+	} else if t.Emitter == nil {
+		ok = false
+		msg += "No emitter for events. "
 	}
+	return ok, msg
 }
 
 var (
