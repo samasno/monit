@@ -74,6 +74,9 @@ func (t *ForwarderTcpClient) Push(payload []byte) error {
 }
 
 func (t *ForwarderTcpClient) log(level int, message string) error {
+	if t.Emitter == nil {
+		return fmt.Errorf("No emitter to send logs")
+	}
 	payload := types.Payload{
 		Source:  NAME,
 		Message: message,
@@ -89,6 +92,14 @@ func (t *ForwarderTcpClient) log(level int, message string) error {
 		return fmt.Errorf(msg + "\n")
 	}
 	return nil
+}
+
+func (t *ForwarderTcpClient) Ok() (bool, string) {
+	if t.Upstream.Connection == nil {
+		return false, "No connection to upstream server"
+	} else {
+		return true, "All good"
+	}
 }
 
 var (
