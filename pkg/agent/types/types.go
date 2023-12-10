@@ -9,6 +9,7 @@ type Forwarder interface {
 	Connect() error
 	Close() error
 	Push([]byte) error
+	Run() error
 }
 
 type ForwarderClient interface {
@@ -20,7 +21,7 @@ type ForwarderClient interface {
 type ForwarderListener interface {
 	Open() error
 	Close() error
-	Listen() ([]byte, error)
+	Listen(chan []byte, chan bool) error
 }
 
 type Emitter interface {
