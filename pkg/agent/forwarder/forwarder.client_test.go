@@ -215,7 +215,7 @@ func TestSocketDatagramListenerOpenClose(t *testing.T) {
 	}
 	ln := UnixDatagramSocketListener{
 		Downstream: ds,
-		Emitter:    &mock.MockEmitter{},
+		Logger:     &mock.MockEmitter{},
 	}
 	err := ln.Open()
 	if err != nil {
@@ -236,7 +236,7 @@ func TestSocketDatagramListenerListen(t *testing.T) {
 	}
 	ln := UnixDatagramSocketListener{
 		Downstream: ds,
-		Emitter:    &mock.MockEmitter{},
+		Logger:     &mock.MockEmitter{},
 	}
 	out := make(chan []byte, 100)
 	closeWorker := make(chan bool)
