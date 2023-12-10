@@ -4,8 +4,10 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"io/ioutil"
+	"net"
 	"sync"
 	"testing"
+	"time"
 
 	mock "github.com/samasno/monit/pkg/agent/mocks"
 	"github.com/samasno/monit/pkg/agent/types"
@@ -205,4 +207,55 @@ func TestTlsClientPush(t *testing.T) {
 	}
 	closer()
 	println("Succesfully disconnected")
+}
+
+func TestSocketDatagramListenerOpenClose(t *testing.T) {
+	ds := types.Downstream{
+		Url: "./test.sock",
+	}
+	ln := UnixDatagramSocketListener{
+		Downstream: ds,
+		Emitter:    &mock.MockEmitter{},
+	}
+	err := ln.Open()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	time.Sleep(5 * time.Second)
+	err = ln.Close()
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	println("closing again")
+	ln.Close()
+}
+
+func TestSocketDatagramListenerListen(t *testing.T) {
+	ds := types.Downstream{
+		Url: "./test.sock",
+	}
+	ln := UnixDatagramSocketListener{
+		Downstream: ds,
+		Emitter:    &mock.MockEmitter{},
+	}
+	out := make(chan []byte, 100)
+	closeWorker := make(chan bool)
+	err := ln.Listen(out, closeWorker)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	client, err := net.Dial("unixgram", ds.Url)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	client.Write([]byte("Test message one"))
+	client.Write([]byte("Test message two"))
+	msgOne := <-out
+	println("Got message: " + string(msgOne))
+	msgTwo := <-out
+	println("Got message: " + string(msgTwo))
+	closeWorker <- true
+	println("next")
+	done := <-closeWorker
+	println(done)
 }
