@@ -23,7 +23,7 @@ func VanillaTcpServer(addr string, wg *sync.WaitGroup) func() error {
 		for {
 			conn, err := ln.Accept()
 			if err != nil {
-				println("Server closed, shutting down")
+				println("mocktcp: Server closed, shutting down")
 				break
 			}
 			connId++
@@ -31,23 +31,23 @@ func VanillaTcpServer(addr string, wg *sync.WaitGroup) func() error {
 				defer wg.Done()
 				defer conn.Close()
 				b := make([]byte, 1024)
-				println(fmt.Sprintf("Accepted new connection id: %d\n", id))
+				println(fmt.Sprintf("mocktcp: Accepted new connection id: %d\n", id))
 				for {
 					n, err := conn.Read(b)
 					if err == io.EOF {
-						println("End of stream connection id", id)
+						println("mocktcp: End of stream connection id", id)
 						break
 					}
 					if err != nil {
-						println("handle connection error:", err.Error())
+						println("mocktcp: handle connection error:", err.Error())
 						break
 					}
 					if n > 0 {
-						fmt.Printf("Read %d bytes from connection %d\n", n, id)
-						println(string(b[:n]))
+						fmt.Printf("mocktcp:Read %d bytes from connection %d\n", n, id)
+						println("mocktcp:" + string(b[:n]))
 					}
 				}
-				println("closing handle connection for id", id)
+				println("mocktcp: closing handle connection for id", id)
 			}(conn, connId)
 		}
 	}(ln)
@@ -60,23 +60,23 @@ func VanillaTcpServer(addr string, wg *sync.WaitGroup) func() error {
 func TlsTcpServer(addr string, wg *sync.WaitGroup) func() error {
 	cert, err := tls.LoadX509KeyPair("../../../certs/testing.crt", "../../../certs/testing.pem")
 	if err != nil {
-		println("failed to load key pair")
+		println("mocktlstcp:failed to load key pair")
 		println(err.Error())
 		return nil
 	}
 	config := &tls.Config{Certificates: []tls.Certificate{cert}}
 	ln, err := tls.Listen("tcp", addr, config)
 	if err != nil {
-		println("Failed to start tls server")
+		println("mocktlstcp: Failed to start tls server")
 		println(err.Error())
 		return nil
 	}
 	go func(ln net.Listener, wg *sync.WaitGroup) {
-		println("mock tls server listening at " + addr)
+		println("mocktlstcp: server listening at " + addr)
 		for {
 			conn, err := ln.Accept()
 			if err != nil {
-				println("Server closed, shutting down")
+				println("mocktlstcp: Server closed, shutting down")
 				break
 			}
 			tlsConnId++
@@ -87,7 +87,7 @@ func TlsTcpServer(addr string, wg *sync.WaitGroup) func() error {
 				for {
 					n, err := conn.Read(b)
 					if err == io.EOF {
-						println("Reached end of stream tls id: " + strconv.Itoa(id))
+						println("mocktlstcp: Reached end of stream tls id: " + strconv.Itoa(id))
 						break
 					}
 					if err != nil {
@@ -95,19 +95,19 @@ func TlsTcpServer(addr string, wg *sync.WaitGroup) func() error {
 						break
 					}
 					if n > 0 {
-						fmt.Printf("Read %d bytes from connection %d\n", n, id)
+						fmt.Printf("mocktlstcp: Read %d bytes from connection %d\n", n, id)
 						println(string(b[:n]))
 					}
 				}
-				println("Closing connection handler for " + strconv.Itoa(id))
+				println("mocktlstcp: Closing connection handler for " + strconv.Itoa(id))
 			}(conn, tlsConnId)
 		}
 	}(ln, wg)
 	return func() error {
-		println("Draining connections")
+		println("mocktlstcp: Draining connections")
 		wg.Wait()
-		println("No connections remaining")
-		println("Closing listener")
+		println("mocktlstcp: No connections remaining")
+		println("mocktlstcp: Closing listener")
 		return ln.Close()
 	}
 }
