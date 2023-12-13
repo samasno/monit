@@ -3,6 +3,7 @@ package types
 import (
 	"crypto/tls"
 	"net"
+	"sync"
 )
 
 type Forwarder interface {
@@ -13,15 +14,15 @@ type Forwarder interface {
 }
 
 type ForwarderClient interface {
-	Connect() error
+	Connect(*sync.WaitGroup) error
 	Disconnect() error
 	Push([]byte) error
 }
 
 type ForwarderListener interface {
-	Open() error
+	Open(*sync.WaitGroup) error
 	Close() error
-	Listen(chan []byte, chan bool) error
+	Listen(chan []byte, chan bool, *sync.WaitGroup) error
 }
 
 type Emitter interface {
