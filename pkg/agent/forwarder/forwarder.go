@@ -2,46 +2,75 @@ package forwarder
 
 import (
 	"fmt"
+	"sync"
 
 	types "github.com/samasno/monit/pkg/agent/types"
 )
 
 type Forwarder struct {
-	Name           string
-	UpstreamClient types.ForwarderClient
-	EventListener  types.ForwarderListener
-	Ok             bool
+	UpstreamClient     types.ForwarderClient
+	DownstreamListener types.ForwarderListener
+	listenerCloser     chan bool
+	listenerOutput     chan []byte
+	shutdown           *sync.WaitGroup
 }
 
 func (f *Forwarder) Connect() error {
-	err := f.UpstreamClient.Connect()
+	f.listenerCloser = make(chan bool)
+	f.listenerOutput = make(chan []byte, 100)
+	f.shutdown = &sync.WaitGroup{}
+	err := f.UpstreamClient.Connect(f.shutdown)
 	if err != nil {
-		return fmt.Errorf("Forwarder %s: Failed to connect to upstream %s\n", f.Name, err.Error())
+		return fmt.Errorf("Forwarder: Failed to connect to upstream %s\n", err.Error())
 	}
-	err = f.EventListener.Open()
+
+	err = f.DownstreamListener.Listen(f.listenerOutput, f.listenerCloser, f.shutdown)
 	if err != nil {
-		return fmt.Errorf("Forwarder %s: Failed to connect %s\n", f.Name, err.Error())
+		return fmt.Errorf("Forwarder: Failed to connect %s\n", err.Error())
 	}
 	return nil
 }
 
 func (f *Forwarder) Close() error {
-	err := f.UpstreamClient.Disconnect()
-	if err != nil {
-		return fmt.Errorf("Forwarder %s: Failed to close connection to upstream %s\n", f.Name, err.Error())
-	}
-	err = f.EventListener.Close()
-	if err != nil {
-		return fmt.Errorf("Forwarder %s: Failed to close listener", f.Name)
-	}
+	f.listenerCloser <- true
+	close(f.listenerOutput)
+	f.UpstreamClient.Disconnect()
+	f.shutdown.Wait()
 	return nil
 }
 
 func (f *Forwarder) Push(msg []byte) error {
 	err := f.UpstreamClient.Push(msg)
 	if err != nil {
-		return fmt.Errorf("Forwarder %s: Failed to push to upstream %s\n", f.Name, err.Error())
+		return fmt.Errorf("Forwarder: Failed to push to upstream %s\n", err.Error())
 	}
+	return nil
+}
+
+func (f *Forwarder) Run() error {
+	f.listenerCloser = make(chan bool)
+	f.listenerOutput = make(chan []byte, 100)
+	err := f.Connect()
+	if err != nil {
+		return err
+	}
+	err = f.DownstreamListener.Listen(f.listenerOutput, f.listenerCloser, f.shutdown)
+	go func() {
+		var running = true
+		for {
+			select {
+			case output, ok := <-f.listenerOutput:
+				if !ok {
+					running = false
+				} else {
+					f.UpstreamClient.Push(output)
+				}
+			}
+			if !running {
+				break
+			}
+		}
+	}()
 	return nil
 }
 
@@ -52,7 +81,7 @@ func (f *Forwarder) Status() (types.Status, error) {
 		fs.MessageText = "Missing upstream client. "
 	}
 
-	if f.EventListener == nil {
+	if f.DownstreamListener == nil {
 		fs.IsOk = false
 		fs.MessageText += "No listening client"
 	}
