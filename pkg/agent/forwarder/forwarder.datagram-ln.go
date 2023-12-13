@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"sync"
 	"time"
 
 	types "github.com/samasno/monit/pkg/agent/types"
@@ -11,11 +12,16 @@ import (
 )
 
 type UnixDatagramSocketListener struct {
-	Downstream types.Downstream
+	Downstream *types.Downstream
 	Logger     types.Emitter
+	shutdown   *sync.WaitGroup
 }
 
-func (l *UnixDatagramSocketListener) Open() error {
+func (l *UnixDatagramSocketListener) Open(shutdown *sync.WaitGroup) error {
+	if l.shutdown == nil {
+		l.shutdown = shutdown
+		l.shutdown.Add(1)
+	}
 	if l.Downstream.Connection != nil {
 		l.log(vars.NOTICE, "Already listening at "+l.Downstream.Url)
 		return nil
@@ -28,6 +34,7 @@ func (l *UnixDatagramSocketListener) Open() error {
 		return fmt.Errorf("%s: %s\n", msg, err.Error())
 	}
 	l.Downstream.Connection = ln
+
 	l.log(vars.INFO, "Listening on unix datagram socket at "+l.Downstream.Url)
 	return nil
 }
@@ -46,13 +53,17 @@ func (l *UnixDatagramSocketListener) Close() error {
 	}
 	l.Downstream.Connection = nil
 	os.Remove(l.Downstream.Url)
-	l.log(vars.INFO, "Closed unix datagram socket at "+l.Downstream.Url)
+	if l.shutdown != nil {
+		l.shutdown.Done()
+		l.shutdown = nil
+	}
+	l.log(vars.INFO, fmt.Sprintf("Closed unix datagram socket at %s", l.Downstream.Url))
 	return nil
 }
 
-func (l *UnixDatagramSocketListener) Listen(out chan []byte, closer chan bool) error {
+func (l *UnixDatagramSocketListener) Listen(out chan []byte, closer chan bool, shutdown *sync.WaitGroup) error {
 	if l.Downstream.Connection == nil {
-		err := l.Open()
+		err := l.Open(shutdown)
 		if err != nil {
 			msg := "Failed to open downstream listener"
 			l.log(vars.ERROR, msg)
@@ -63,6 +74,11 @@ func (l *UnixDatagramSocketListener) Listen(out chan []byte, closer chan bool) e
 		b := make([]byte, 4096)
 		running := true
 		go func(out chan []byte) {
+			defer func() {
+				if r := recover(); r != nil {
+					l.log(vars.ERROR, "Recovered from panic in Listen")
+				}
+			}()
 			for {
 				if !running {
 					break
@@ -73,8 +89,7 @@ func (l *UnixDatagramSocketListener) Listen(out chan []byte, closer chan bool) e
 						l.log(vars.CRITICAL, "Socket has closed unexpectedly")
 						l.log(vars.NOTICE, "Restarting socket in 5 seconds")
 						time.Sleep(5 * time.Second)
-						l.Close()
-						l.Listen(out, closer)
+						l.Listen(out, closer, shutdown)
 						break
 					} else {
 						if running {
