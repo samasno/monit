@@ -27,12 +27,14 @@ func TestTcpClientConnect(t *testing.T) {
 		Upstream: upstream,
 		Emitter:  emitter,
 	}
-	err := tcpForwarder.Connect()
+	shutdown := &sync.WaitGroup{}
+	err := tcpForwarder.Connect(shutdown)
 	if err != nil {
 		println("Failed to connect")
 		t.Fatal(err.Error())
 	}
 	tcpForwarder.Disconnect()
+	shutdown.Wait()
 	closer()
 }
 
@@ -50,7 +52,8 @@ func TestTcpClientDisconnect(t *testing.T) {
 		Upstream: upstream,
 		Emitter:  emitter,
 	}
-	err := tcpForwarder.Connect()
+	shutdown := &sync.WaitGroup{}
+	err := tcpForwarder.Connect(shutdown)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
@@ -62,6 +65,7 @@ func TestTcpClientDisconnect(t *testing.T) {
 	if tcpForwarder.Upstream.Connection != nil {
 		t.Fatal("Upstream connection was not nilled")
 	}
+	shutdown.Wait()
 	closer()
 }
 
@@ -79,7 +83,8 @@ func TestTcpClientPush(t *testing.T) {
 		Upstream: upstream,
 		Emitter:  emitter,
 	}
-	err := tcpForwarder.Connect()
+	shutdown := &sync.WaitGroup{}
+	err := tcpForwarder.Connect(shutdown)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
@@ -97,6 +102,7 @@ func TestTcpClientPush(t *testing.T) {
 		t.Error(err.Error())
 	}
 	tcpForwarder.Disconnect()
+	shutdown.Wait()
 	closer()
 }
 
@@ -123,11 +129,13 @@ func TestTlsClientConnect(t *testing.T) {
 		Emitter:  &mock.MockEmitter{},
 	}
 	wg.Add(1)
-	err = fwd.Connect()
+	shutdown := &sync.WaitGroup{}
+	err = fwd.Connect(shutdown)
 	if err != nil {
 		t.Fatal(err)
 	}
 	fwd.Disconnect()
+	shutdown.Wait()
 	closer()
 }
 
@@ -154,7 +162,8 @@ func TestTlsClientDisconnect(t *testing.T) {
 		Emitter:  &mock.MockEmitter{},
 	}
 	wg.Add(1)
-	err = fwd.Connect()
+	shutdown := &sync.WaitGroup{}
+	err = fwd.Connect(shutdown)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -162,6 +171,7 @@ func TestTlsClientDisconnect(t *testing.T) {
 	if err != nil {
 		t.Fatal(err.Error())
 	}
+	shutdown.Wait()
 	closer()
 	println("Succesfully disconnected")
 }
@@ -189,7 +199,8 @@ func TestTlsClientPush(t *testing.T) {
 		Emitter:  &mock.MockEmitter{},
 	}
 	wg.Add(1)
-	err = fwd.Connect()
+	shutdown := &sync.WaitGroup{}
+	err = fwd.Connect(shutdown)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -210,14 +221,15 @@ func TestTlsClientPush(t *testing.T) {
 }
 
 func TestSocketDatagramListenerOpenClose(t *testing.T) {
-	ds := types.Downstream{
+	ds := &types.Downstream{
 		Url: "./test.sock",
 	}
 	ln := UnixDatagramSocketListener{
 		Downstream: ds,
 		Logger:     &mock.MockEmitter{},
 	}
-	err := ln.Open()
+	shutdown := &sync.WaitGroup{}
+	err := ln.Open(shutdown)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
@@ -228,6 +240,7 @@ func TestSocketDatagramListenerOpenClose(t *testing.T) {
 	}
 	println("closing again")
 	ln.Close()
+	shutdown.Wait()
 }
 
 func TestSocketDatagramListenerListen(t *testing.T) {
@@ -235,12 +248,13 @@ func TestSocketDatagramListenerListen(t *testing.T) {
 		Url: "./test.sock",
 	}
 	ln := UnixDatagramSocketListener{
-		Downstream: ds,
+		Downstream: &ds,
 		Logger:     &mock.MockEmitter{},
 	}
 	out := make(chan []byte, 100)
 	closeWorker := make(chan bool)
-	err := ln.Listen(out, closeWorker)
+	shutdown := &sync.WaitGroup{}
+	err := ln.Listen(out, closeWorker, shutdown)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
@@ -257,5 +271,6 @@ func TestSocketDatagramListenerListen(t *testing.T) {
 	closeWorker <- true
 	println("next")
 	done := <-closeWorker
+	shutdown.Wait()
 	println(done)
 }
