@@ -18,7 +18,7 @@ type ForwarderTcpClient struct {
 
 func (t *ForwarderTcpClient) Connect(shutdown *sync.WaitGroup) error {
 	if t.shutdown == nil {
-		t.shutdown = &sync.WaitGroup{}
+		t.shutdown = shutdown
 		t.shutdown.Add(1)
 	}
 	if t.Upstream.Connection != nil {
