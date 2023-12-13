@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net"
+	"sync"
 
 	"github.com/samasno/monit/pkg/agent/types"
 	"github.com/samasno/monit/pkg/agent/vars"
@@ -12,9 +13,14 @@ import (
 type ForwarderTcpClient struct {
 	Upstream *types.Upstream
 	Emitter  types.Emitter
+	shutdown *sync.WaitGroup
 }
 
-func (t *ForwarderTcpClient) Connect() error {
+func (t *ForwarderTcpClient) Connect(shutdown *sync.WaitGroup) error {
+	if t.shutdown == nil {
+		t.shutdown = &sync.WaitGroup{}
+		t.shutdown.Add(1)
+	}
 	if t.Upstream.Connection != nil {
 		t.log(vars.NOTICE, "Connection already exists")
 		return nil
@@ -51,6 +57,10 @@ func (t *ForwarderTcpClient) Disconnect() error {
 			return fmt.Errorf(msg)
 		}
 		t.Upstream.Connection = nil
+	}
+	if t.shutdown != nil {
+		t.shutdown.Done()
+		t.shutdown = nil
 	}
 	t.log(vars.INFO, fmt.Sprintf("Disconnected from %s", t.Upstream.Url))
 	return nil
