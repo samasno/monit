@@ -141,6 +141,11 @@ func (l *LogTail) Update() error {
 				totalBytes += int64(len(line))
 			}
 			l.wg.Wait()
+			err = scanner.Err()
+			if err != nil && err != io.EOF {
+				l.log(vars.ERROR, fmt.Sprintf("Encountered non-EOF error while scanning file"))
+				l.Close()
+			}
 			l.position = end
 			l.log(vars.INFO, fmt.Sprintf("Read %d bytes", totalBytes))
 			time.Sleep(15 * time.Second)
