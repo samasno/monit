@@ -36,9 +36,7 @@ type LogTail interface {
 }
 
 type Logger interface {
-	StdOut(msg string) error
-	StdErr(msg string) error
-	Close() error
+	ListenAndLog() error
 }
 
 type Status interface {
