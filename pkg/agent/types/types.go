@@ -25,6 +25,12 @@ type ForwarderListener interface {
 	Listen(chan []byte, chan bool, *sync.WaitGroup) error
 }
 
+type Listener interface {
+	Open(*sync.WaitGroup) error
+	Close() error
+	Listen(chan []byte, chan bool, *sync.WaitGroup) error
+}
+
 type Emitter interface {
 	Emit(Event) error
 }
