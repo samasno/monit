@@ -28,7 +28,7 @@ func (l *Logger) ListenAndLog() error {
 	go func(works chan bool) {
 		defer l.close()
 		sig := make(chan os.Signal)
-		signal.Notify(sig, syscall.SIGINT, syscall.SIGKILL, syscall.SIGABRT, syscall.SIGTERM)
+		signal.Notify(sig, syscall.SIGINT, syscall.SIGKILL, syscall.SIGABRT, syscall.SIGTERM, syscall.SIGINT)
 		err := l.open()
 		if err != nil {
 			l.log(vars.ERROR, err.Error())
@@ -71,6 +71,7 @@ func (l *Logger) logWorker(job chan []byte) {
 		if !ok {
 			closeWorker = true
 		}
+		println(string(msg))
 		formatted := formatEventToLog(msg)
 		log.Println(formatted)
 		if closeWorker {
