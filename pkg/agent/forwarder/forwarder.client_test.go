@@ -25,7 +25,7 @@ func TestTcpClientConnect(t *testing.T) {
 	emitter := &mock.MockEmitter{}
 	tcpForwarder := ForwarderTcpClient{
 		Upstream: upstream,
-		Emitter:  emitter,
+		Logger:   emitter,
 	}
 	shutdown := &sync.WaitGroup{}
 	err := tcpForwarder.Connect(shutdown)
@@ -50,7 +50,7 @@ func TestTcpClientDisconnect(t *testing.T) {
 	emitter := &mock.MockEmitter{}
 	tcpForwarder := ForwarderTcpClient{
 		Upstream: upstream,
-		Emitter:  emitter,
+		Logger:   emitter,
 	}
 	shutdown := &sync.WaitGroup{}
 	err := tcpForwarder.Connect(shutdown)
@@ -81,7 +81,7 @@ func TestTcpClientPush(t *testing.T) {
 	emitter := &mock.MockEmitter{}
 	tcpForwarder := ForwarderTcpClient{
 		Upstream: upstream,
-		Emitter:  emitter,
+		Logger:   emitter,
 	}
 	shutdown := &sync.WaitGroup{}
 	err := tcpForwarder.Connect(shutdown)
@@ -126,7 +126,7 @@ func TestTlsClientConnect(t *testing.T) {
 	}
 	fwd := ForwarderTcpClient{
 		Upstream: upstream,
-		Emitter:  &mock.MockEmitter{},
+		Logger:   &mock.MockEmitter{},
 	}
 	wg.Add(1)
 	shutdown := &sync.WaitGroup{}
@@ -159,7 +159,7 @@ func TestTlsClientDisconnect(t *testing.T) {
 	}
 	fwd := ForwarderTcpClient{
 		Upstream: upstream,
-		Emitter:  &mock.MockEmitter{},
+		Logger:   &mock.MockEmitter{},
 	}
 	wg.Add(1)
 	shutdown := &sync.WaitGroup{}
@@ -196,7 +196,7 @@ func TestTlsClientPush(t *testing.T) {
 	}
 	fwd := ForwarderTcpClient{
 		Upstream: upstream,
-		Emitter:  &mock.MockEmitter{},
+		Logger:   &mock.MockEmitter{},
 	}
 	wg.Add(1)
 	shutdown := &sync.WaitGroup{}

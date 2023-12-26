@@ -12,7 +12,7 @@ import (
 
 type ForwarderTcpClient struct {
 	Upstream *types.Upstream
-	Emitter  types.Emitter
+	Logger   types.Emitter
 	shutdown *sync.WaitGroup
 }
 
@@ -84,8 +84,8 @@ func (t *ForwarderTcpClient) Push(payload []byte) error {
 }
 
 func (t *ForwarderTcpClient) log(level int, message string) error {
-	if t.Emitter == nil {
-		return fmt.Errorf("No emitter to send logs")
+	if t.Logger == nil {
+		return fmt.Errorf("No logger to send logs")
 	}
 	payload := types.Payload{
 		Source:  NAME,
@@ -96,9 +96,9 @@ func (t *ForwarderTcpClient) log(level int, message string) error {
 		Type:    vars.FORWARDER_CLIENT_LOG,
 		Payload: payload,
 	}
-	err := t.Emitter.Emit(event)
+	err := t.Logger.Emit(event)
 	if err != nil {
-		msg := fmt.Sprintf("Failed to emit message")
+		msg := fmt.Sprintf("Failed to log message")
 		return fmt.Errorf(msg + "\n")
 	}
 	return nil
@@ -110,9 +110,9 @@ func (t *ForwarderTcpClient) Ok() (bool, string) {
 	if t.Upstream.Connection == nil {
 		ok = false
 		msg += "No connection to upstream server. "
-	} else if t.Emitter == nil {
+	} else if t.Logger == nil {
 		ok = false
-		msg += "No emitter for events. "
+		msg += "No logger for events. "
 	}
 	return ok, msg
 }

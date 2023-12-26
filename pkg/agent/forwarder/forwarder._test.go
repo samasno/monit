@@ -22,7 +22,7 @@ func TestForwarderConnectCloseTcp(t *testing.T) {
 	}
 	tcpFwd := &ForwarderTcpClient{
 		Upstream: us,
-		Emitter:  &mock.MockEmitter{},
+		Logger:   &mock.MockEmitter{},
 	}
 	ds := &types.Downstream{
 		Url: testsock,
@@ -65,7 +65,7 @@ func TestForwarderConnectCloseTlsTcp(t *testing.T) {
 	}
 	tcpFwd := &ForwarderTcpClient{
 		Upstream: us,
-		Emitter:  &mock.MockEmitter{},
+		Logger:   &mock.MockEmitter{},
 	}
 	ds := &types.Downstream{
 		Url: testsock,
@@ -101,7 +101,7 @@ func TestForwarderRunPushTcp(t *testing.T) {
 	}
 	tcpFwd := &ForwarderTcpClient{
 		Upstream: us,
-		Emitter:  &mock.MockEmitter{},
+		Logger:   &mock.MockEmitter{},
 	}
 	ds := &types.Downstream{
 		Url: testsock,
