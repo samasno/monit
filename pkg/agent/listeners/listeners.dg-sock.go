@@ -74,7 +74,6 @@ func (l *UnixDatagramSocketListener) Listen(out chan []byte, closer chan bool, s
 		}
 	}
 	go func(out chan []byte, closer chan bool) {
-		b := make([]byte, 4096)
 		running := true
 		go func(out chan []byte) {
 			defer func() {
@@ -83,6 +82,7 @@ func (l *UnixDatagramSocketListener) Listen(out chan []byte, closer chan bool, s
 				}
 			}()
 			for {
+				b := make([]byte, 4096)
 				if !running {
 					break
 				}
