@@ -36,8 +36,11 @@ func (l *UnixDatagramSocketListener) Open(shutdown *sync.WaitGroup) error {
 		l.log(vars.CRITICAL, msg)
 		return fmt.Errorf("%s: %s\n", msg, err.Error())
 	}
+	ln.SetWriteBuffer(65536)
+	ln.SetReadBuffer(65536)
+	l.log(vars.INFO, "Set socket write buffer to 65536")
+	l.log(vars.INFO, "Set socket read buffer to 65536")
 	l.Downstream.Connection = ln
-
 	l.log(vars.INFO, "Listening on unix datagram socket at "+l.Downstream.Url)
 	return nil
 }
