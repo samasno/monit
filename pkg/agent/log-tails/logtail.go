@@ -177,7 +177,7 @@ func (l *LogTail) updateWorker(in chan string) {
 		}
 		err := l.Pipe.Emit(e)
 		if err != nil {
-			l.log(vars.ERROR, "Failed to forward log tail update")
+			l.log(vars.ERROR, "Failed to forward log tail update: "+err.Error())
 		}
 	}
 	l.wg.Done()
