@@ -48,6 +48,7 @@ func (s *SocketEmitter) connect() error {
 	if err != nil {
 		return err
 	}
+	cn.SetWriteBuffer(65536)
 	s.conn = cn
 	return nil
 }
